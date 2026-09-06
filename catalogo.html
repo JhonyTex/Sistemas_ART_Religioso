@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo en Liquidación | El Almacén de la Fe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=zoom">
+</head>
+<body>
+    <header class="catalog-header">
+        <div class="container header-container">
+            <a href="index.html" class="back-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Volver al Inicio
+            </a>
+            <div class="header-titles">
+                <span class="sub-header-tag">Liquidación Total por Cierre de Local</span>
+                <h1 class="logo-title serif">El Almacén de la Fe</h1>
+            </div>
+            <div class="header-spacer"></div>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <section class="controls-section">
+            <div class="search-wrapper">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="searchInput" placeholder="Buscar por nombre, SKU o imagen devocional...">
+            </div>
+            
+            <div class="mobile-filter-container">
+                <select id="mobileCategorySelect" class="mobile-select"></select>
+            </div>
+
+            <div class="filter-pills" id="categoryFilters"></div>
+
+            <div class="catalog-status-bar">
+                <span id="productCounter" class="product-counter">Cargando inventario...</span>
+                <span class="stock-banner">🏷️ Precios de Fábrica | Hasta agotar inventario</span>
+            </div>
+        </section>
+
+        <section class="product-grid" id="productGrid"></section>
+
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">✝</div>
+            <h3 class="serif">No encontramos piezas con ese término</h3>
+            <p>Prueba con otra palabra o revisa la categoría "Todos".</p>
+        </div>
+    </main>
+
+    <!-- Modal de detalle de producto -->
+    <div id="productModal" class="modal" aria-hidden="true">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose" aria-label="Cerrar modal">&times;</button>
+            <div class="modal-body">
+                <div class="modal-img-container" id="modalImgContainer" title="Haz clic para ampliar en pantalla completa">
+                    <img id="modalImg" src="" alt="">
+                    <span class="zoom-hint-badge">🔍 Toca para ampliar</span>
+                    <span class="stock-pill-modal">Precio de Liquidación</span>
+                </div>
+                <div class="modal-info">
+                    <span id="modalCategory" class="card-category"></span>
+                    <h2 id="modalTitle" class="modal-title serif"></h2>
+                    <span id="modalSku" class="card-sku"></span>
+                    
+                    <div class="stock-alert-box">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        <div>
+                            <strong>Liquidación final por cierre:</strong>
+                            <p style="margin: 0; font-size: 0.82rem; opacity: 0.95;">Precio directo de fábrica. Son las últimas unidades en bodega y no habrá reposición.</p>
+                        </div>
+                    </div>
+
+                    <div id="modalDesc" class="modal-desc-box"></div>
+                    
+                    <div class="modal-pricing-row">
+                        <div>
+                            <span class="price-label">Precio de liquidación</span>
+                            <div id="modalPrice" class="modal-price"></div>
+                        </div>
+                    </div>
+
+                    <a id="modalWhatsapp" href="#" target="_blank" class="btn-whatsapp modal-btn-cta">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.075-2.227-.563-1.832-.763-3.003-2.628-3.095-2.75-.091-.122-.744-.991-.744-1.89s.469-1.341.636-1.527c.166-.186.363-.232.485-.232.121 0 .243.002.348.007.113.006.265-.043.414.316.152.368.52 1.267.566 1.359.045.093.076.201.015.323-.061.121-.092.197-.183.303-.09.106-.19.237-.272.318-.09.09-.184.188-.079.369.106.182.472.78 1.013 1.261.696.621 1.282.813 1.464.904.182.09.289.076.395-.045.107-.122.455-.53.576-.713.121-.182.243-.151.409-.09.167.061 1.061.5 1.243.591.181.09.303.136.348.212.045.076.045.438-.099.843zM12 2C6.477 2 2 6.477 2 12c0 1.891.524 3.662 1.435 5.178L2 22l4.957-1.3c1.455.794 3.118 1.3 4.962 1.3 5.486 0 9.944-4.437 10-9.923C22 6.541 17.514 2 12 2z"/></svg>
+                        Pedir y Apartar por WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visor Pantalla Completa Accesible -->
+    <div id="lightboxModal" class="lightbox-modal" aria-hidden="true">
+        <div class="lightbox-backdrop"></div>
+        <div class="lightbox-wrapper">
+            <button id="lightboxClose" class="lightbox-close-btn" aria-label="Cerrar visor">&times; Cerrar</button>
+            <img id="lightboxImg" class="lightbox-image" src="" alt="Imagen ampliada">
+            <span class="lightbox-caption" id="lightboxCaption"></span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
