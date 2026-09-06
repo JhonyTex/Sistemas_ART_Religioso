@@ -1,11 +1,7 @@
 {
-  "name": "sistema-art-religioso",
+  "name": "sistema-sacro",
   "compatibility_date": "2026-09-03",
   "assets": {
-    "directory": ".",
-    "exclude": [
-      ".git/**",
-      ".github/**"
-    ]
+    "directory": "."
   }
 }
