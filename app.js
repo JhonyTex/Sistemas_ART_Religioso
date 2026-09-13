@@ -116,6 +116,7 @@ const mobileCategorySelect = document.getElementById('mobileCategorySelect');
 const searchInput = document.getElementById('searchInput');
 const emptyState = document.getElementById('emptyState');
 const productCounter = document.getElementById('productCounter');
+const dynamicAvailableCounter = document.getElementById('dynamicAvailableCounter');
 
 const productModal = document.getElementById('productModal');
 const modalClose = document.getElementById('modalClose');
@@ -126,6 +127,7 @@ const modalTitle = document.getElementById('modalTitle');
 const modalSku = document.getElementById('modalSku');
 const modalDesc = document.getElementById('modalDesc');
 const modalPrice = document.getElementById('modalPrice');
+const modalOldPrice = document.getElementById('modalOldPrice');
 const modalWhatsapp = document.getElementById('modalWhatsapp');
 
 // Visor Lightbox
@@ -134,6 +136,11 @@ const lightboxImg = document.getElementById('lightboxImg');
 const lightboxClose = document.getElementById('lightboxClose');
 const lightboxCaption = document.getElementById('lightboxCaption');
 const lightboxBackdrop = document.querySelector('.lightbox-backdrop');
+
+// Toasts de prueba social
+const socialProofToast = document.getElementById('socialProofToast');
+const toastTitle = document.getElementById('toastTitle');
+const toastProduct = document.getElementById('toastProduct');
 
 let currentCategory = "Todos";
 let currentSearchTerm = "";
@@ -146,12 +153,17 @@ const formatPrice = (price) => {
     }).format(price || 0);
 };
 
+// Cálculo de precio regular ancla (50% más que el precio de liquidación)
+const getRegularPrice = (price) => {
+    return Math.round((price * 1.5) / 1000) * 1000;
+};
+
 // Generador de mensaje comercial
 const generateWhatsAppLink = (product) => {
     const message = `¡Hola! Me comunico por la liquidación de bodega de El Almacén de la Fe:
 • Ref: ${product.sku || 'N/A'}
 • Producto: ${product.nombre || ''}
-• Precio: ${formatPrice(product.precio)}
+• Precio Liquidación: ${formatPrice(product.precio)}
 
 Quisiera apartarlo antes de que se agote. ¿Aún lo tienen disponible?`;
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -201,6 +213,9 @@ const openModal = (product) => {
     modalSku.textContent = product.sku ? `Referencia: ${product.sku}` : '';
     modalDesc.textContent = product.desc || '';
     modalPrice.textContent = formatPrice(product.precio);
+    if (modalOldPrice) {
+        modalOldPrice.textContent = formatPrice(getRegularPrice(product.precio));
+    }
     
     const modalBadge = productModal.querySelector('.stock-pill-modal');
     if (modalBadge) {
@@ -258,6 +273,13 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Actualiza el contador dinámico en la barra superior de urgencia
+const updateLiveUrgencyCount = () => {
+    if (!dynamicAvailableCounter) return;
+    const disponibles = productos.filter(p => p.estado === "Disponible").length;
+    dynamicAvailableCounter.textContent = disponibles;
+};
+
 // Renderizador dinámico de categorías
 const renderFilters = () => {
     if (!categoryFilters || !mobileCategorySelect) return;
@@ -292,7 +314,7 @@ const renderFilters = () => {
     });
 };
 
-// Renderizar tarjetas en catálogo
+// Renderizar tarjetas en catálogo con precios comparados
 const renderProducts = (productsToRender) => {
     if (!productGrid || !productCounter) return;
 
@@ -307,12 +329,15 @@ const renderProducts = (productsToRender) => {
 
     productGrid.innerHTML = productsToRender.map(p => {
         const isAgotado = p.estado === "Agotado";
+        const oldPrice = getRegularPrice(p.precio);
         return `
         <article class="card ${isAgotado ? 'card-agotada' : ''}" data-sku="${p.sku || ''}" style="${isAgotado ? 'opacity: 0.65;' : ''}">
             <div class="card-img-wrapper">
                 <span class="badge-scarcity" style="${isAgotado ? 'background: #b02a37;' : ''}">
                     ${isAgotado ? '✕ Agotado' : '<span class="pulse-dot"></span> Liquidación'}
                 </span>
+
+                ${!isAgotado ? `<span class="badge-discount">-33% DCTO</span>` : ''}
                 
                 <img src="${p.url_img}" alt="${p.nombre || ''}" class="product-img" loading="lazy"
                      onerror="this.src='https://via.placeholder.com/300?text=Arte+Sacro'">
@@ -330,11 +355,12 @@ const renderProducts = (productsToRender) => {
 
                 <div class="card-price-row">
                     <div>
+                        ${!isAgotado ? `<span class="card-old-price">${formatPrice(oldPrice)}</span>` : ''}
                         <div class="card-price" style="${isAgotado ? 'text-decoration: line-through; color: #8395A7;' : ''}">
                             ${formatPrice(p.precio)}
                         </div>
                     </div>
-                    <span class="card-unit">${isAgotado ? 'No disponible' : 'Precio Fábrica'}</span>
+                    <span class="card-unit">${isAgotado ? 'No disponible' : 'Fábrica'}</span>
                 </div>
                 
                 ${isAgotado 
@@ -385,8 +411,46 @@ if (searchInput) {
     });
 }
 
+// === NOTIFICACIONES DINÁMICAS DE PRUEBA SOCIAL ===
+const ciudadaesColombia = ["Medellín", "Bogotá", "Cali", "Barranquilla", "Bucaramanga", "Pereira", "Manizales", "Cartagena", "Envigado", "Bello"];
+
+const triggerSocialProof = () => {
+    if (!socialProofToast || !toastTitle || !toastProduct) return;
+    
+    // Filtra productos disponibles para mostrar solo compras verosímiles
+    const disponibles = productos.filter(p => p.estado === "Disponible");
+    if (disponibles.length === 0) return;
+
+    const randomProduct = disponibles[Math.floor(Math.random() * disponibles.length)];
+    const randomCity = ciudadaesColombia[Math.floor(Math.random() * ciudadaesColombia.length)];
+    const minutos = Math.floor(Math.random() * 8) + 2;
+
+    toastTitle.textContent = `Alguien de ${randomCity} apartó:`;
+    toastProduct.textContent = randomProduct.nombre;
+    const timeSpan = socialProofToast.querySelector('.social-toast-time');
+    if (timeSpan) timeSpan.textContent = `Hace ${minutos} minutos • Liquidación de bodega`;
+
+    socialProofToast.classList.add('show');
+
+    // Se oculta después de 5.5 segundos
+    setTimeout(() => {
+        socialProofToast.classList.remove('show');
+    }, 5500);
+};
+
+// Inicia el ciclo de prueba social (primera a los 6 segundos, luego cada 35 segundos)
+const initSocialProof = () => {
+    if (!socialProofToast) return;
+    setTimeout(() => {
+        triggerSocialProof();
+        setInterval(triggerSocialProof, 35000);
+    }, 6000);
+};
+
 // Inicialización garantizada
 document.addEventListener('DOMContentLoaded', () => {
+    updateLiveUrgencyCount();
     renderFilters();
     filterAndRender();
+    initSocialProof();
 });
